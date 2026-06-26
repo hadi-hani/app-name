@@ -8,8 +8,8 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - MONGO_URI=mongodb://mongo:27017/chatapp
-      - JWT_SECRET=changeme_use_strong_secret
+      - MONGO_URI=mongodb://mongouser:mongopass@mongo:27017/chatapp?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
     depends_on:
       - mongo
@@ -20,6 +20,9 @@ services:
     image: mongo:7
     container_name: chat-mongo
     restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongouser
+      - MONGO_INITDB_ROOT_PASSWORD=mongopass
     volumes:
       - mongo_data:/data/db
     networks:
