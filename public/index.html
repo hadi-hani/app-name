@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+    h1 { text-align: center; color: #128c7e; margin-bottom: 1.5rem; font-size: 1.8rem; }
+    .tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid #f0f2f5; }
+    .tab { flex: 1; padding: 0.7rem; text-align: center; cursor: pointer; color: #666; font-weight: 600; transition: all 0.2s; }
+    .tab.active { color: #128c7e; border-bottom: 2px solid #128c7e; margin-bottom: -2px; }
+    input { width: 100%; padding: 0.8rem 1rem; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; outline: none; transition: border 0.2s; }
+    input:focus { border-color: #128c7e; }
+    button { width: 100%; padding: 0.9rem; background: #128c7e; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #0a6960; }
+    .error { color: #e74c3c; font-size: 0.85rem; margin-bottom: 0.8rem; text-align: center; display: none; }
+    .form { display: none; }
+    .form.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>💬 Chat</h1>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">تسجيل الدخول</div>
+      <div class="tab" onclick="switchTab('register')">حساب جديد</div>
+    </div>
+    <div id="error" class="error"></div>
+    <div id="login-form" class="form active">
+      <input type="text" id="login-username" placeholder="اسم المستخدم" />
+      <input type="password" id="login-password" placeholder="كلمة المرور" />
+      <button onclick="login()">دخول</button>
+    </div>
+    <div id="register-form" class="form">
+      <input type="text" id="reg-username" placeholder="اسم المستخدم" />
+      <input type="password" id="reg-password" placeholder="كلمة المرور" />
+      <button onclick="register()">إنشاء حساب</button>
+    </div>
+  </div>
+  <script>
+    if (localStorage.getItem('token')) window.location.href = '/chat.html';
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' ? 0 : 1) === i));
+      document.getElementById('login-form').classList.toggle('active', tab === 'login');
+      document.getElementById('register-form').classList.toggle('active', tab === 'register');
+      document.getElementById('error').style.display = 'none';
+    }
+    function showError(msg) {
+      const el = document.getElementById('error');
+      el.textContent = msg; el.style.display = 'block';
+    }
+    async function login() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      const data = await res.json();
+      if (data.token) { localStorage.setItem('token', data.token); localStorage.setItem('username', data.username); window.location.href = '/chat.html'; }
+      else showError(data.error || 'خطأ في تسجيل الدخول');
+    }
+    async function register() {
+      const username = document.getElementById('reg-username').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      const data = await res.json();
+      if (data.token) { localStorage.setItem('token', data.token); localStorage.setItem('username', data.username); window.location.href = '/chat.html'; }
+      else showError(data.error || 'خطأ في إنشاء الحساب');
+    }
+  </script>
+</body>
+</html>

@@ -1,25 +1,34 @@
+require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const mongoose = require('mongoose');
+const path = require('path');
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
 const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/chatapp';
 
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head><title>App Name</title></head>
-      <body style="font-family:sans-serif;text-align:center;padding:50px;background:#f0f4ff">
-        <h1>✅😀😀😀 Auto-Deploy is Working!</h1>
-        <p>هذا التحديث تم تلقائياً عبر Perplexity → GitHub → GHCR → Watchtower</p>
-        <p style="color:green"><b>Pipeline يعمل بشكل مثالي 🎉</b></p>
-        <p><small>Updated: ${new Date().toLocaleString('ar-DZ')}</small></p>
-      </body>
-    </html>
-  `);
+// Connect to MongoDB
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB error:', err));
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Routes
+app.use('/api/auth', require('./src/routes/auth'));
+
+// Socket.io
+require('./src/socket/chat')(io);
+
+// Fallback
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

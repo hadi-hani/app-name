@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/hadi-hani/app-name:latest
+    container_name: app-name
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/chatapp
+      - JWT_SECRET=changeme_use_strong_secret
+      - PORT=3000
+    depends_on:
+      - mongo
+    networks:
+      - chatnet
+
+  mongo:
+    image: mongo:7
+    container_name: chat-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - chatnet
+
+volumes:
+  mongo_data:
+
+networks:
+  chatnet:
+    driver: bridge
